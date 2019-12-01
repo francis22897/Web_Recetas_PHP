@@ -31,9 +31,9 @@ img.b {
 	left: 0;
 	top: 0;
 	}
-#estiloglosario, #mensajeBienvenida, #estiloRecetas, #nuestraweb,#estiloayuda,#estilonuevouser{width: 718px;float: right;background-color:#fff;text-align: left;}
+#estiloglosario, #enviarReceta, #mensajeBienvenida, #estiloRecetas, #nuestraweb,#estiloayuda,#estilonuevouser{width: 718px;float: right;background-color:#fff;text-align: left;}
 p{margin-left: 10px;margin-right: 10px;font-size:15px;}
-#estiloglosario p,#mensajeBienvenida p, #estiloRecetas p, #nuestraweb p,#estiloayuda p{margin-left: 10px;margin-right: 10px;}
+#estiloglosario p,#enviarReceta p,#mensajeBienvenida p, #estiloRecetas p, #nuestraweb p,#estiloayuda p{margin-left: 10px;margin-right: 10px;}
 #palabraglosario{ border:#000 1px solid; margin-bottom:5px; margin-left:1px; margin-right:1px;}
 #nuestraweb h3, #estiloayuda  h3,.saludo{color:#000;}
 #pie{
@@ -153,4 +153,8 @@ A.enlacenav:HOVER{color: #3F7DE3;}
 	display: block;
 	width: 150px;
 	float: left;
+}
+
+#col_izq > a {
+	cursor:hand;
 }

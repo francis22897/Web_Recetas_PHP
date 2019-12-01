@@ -2,7 +2,7 @@
 <link rel="stylesheet" type="text/css" href="css/estilos.css" />
 <div id="cabecera">
 	<div id="login">
-				echo '<span><a href="registroUsuarioMejorado2.php">Quiero registrarme!</a></span><p>ACCESO USUARIOS</p>
+				<span><a href="registroUsuarioMejorado2.php">Quiero registrarme!</a></span><p>ACCESO USUARIOS</p>
 				<form id="acceso" action="dologin.php" method="post">
 				<div align="right">
 				<table width="20px"><tbody>

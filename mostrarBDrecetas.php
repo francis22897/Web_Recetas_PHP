@@ -316,7 +316,7 @@ function showRecipes($recipes){
                         <p><b>Ingredientes</b></p>
                         <ul>
                             <?php foreach($ingredients as $ingredient): ?>
-                                <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . "g" ?></p></li>
+                                <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . " gramos o cantidad" ?></p></li>
                             <?php endforeach; ?>
                         </ul>
 

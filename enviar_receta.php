@@ -2,7 +2,48 @@
 //include_once("funciones_comunes.php");
 include_once("cabecera.php");
 include_once("menu.php");
-include_once("col_izq.php"); ?>
+include_once("col_izq.php"); 
+
+
+try{
+	$db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
+	
+	$db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+
+	$query = "SELECT nombre, id_ingred FROM ingrediente";
+
+	$st = $db->prepare($query);
+
+	$st->execute();
+
+	$ingredientes = $st->fetchAll(PDO::FETCH_ASSOC);
+
+	$query = "SELECT tipos_receta, id_tipo_receta FROM tipo_receta";
+
+	$st = $db->prepare($query);
+
+	$st->execute();
+
+	$tiposReceta = $st->fetchAll(PDO::FETCH_ASSOC);
+
+	$query = "SELECT nombre, id_provincia FROM provincia";
+
+	$st = $db->prepare($query);
+
+	$st->execute();
+
+	$provincias = $st->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+	echo '¡Error!: ',$e->getMessage(),'<br />';
+	die();
+} catch (Throwable $e) {
+	echo '¡Error!: ',$e->getMessage(),'<br />';
+	die();
+}
+
+
+?>
 <script>
 function add_ingrediente (obj)
 {	
@@ -18,7 +59,7 @@ function add_ingrediente (obj)
 	// Creo el input
 	oTD = document.createElement ("TD")	
 	oInput = document.createElement ("INPUT")	
-	oInput.type = "text"	
+	oInput.type = "number"	
 	oInput.name = "cant_" + num
 	oInput.id = "cant_" + num
 	oInput.className = "input2"
@@ -49,12 +90,23 @@ function add_ingrediente (obj)
 	
 	// Creo el otro input
 	oTD4 = document.createElement ("TD")	
-	oInput = document.createElement ("INPUT")
-	oInput.type = "text"
+	oInput = document.createElement ("SELECT")
 	oInput.id = "prod_" + num
 	oInput.name = "prod_" + num
-	oInput.className = "input2"
-	oInput.style.width = "370px"	
+	oInput.style.width = "370px"
+
+	<?php
+
+	if(isset($ingredientes)){
+		foreach($ingredientes as $ingrediente): ?>
+		
+		oInput.innerHTML += "<option value='<?php echo $ingrediente["id_ingred"]; ?>'><?php echo $ingrediente["nombre"]; ?></option>"
+
+		<?php endforeach;
+	}
+
+	?>
+
 	oTD4.appendChild (oInput)	
 	oTR.appendChild (oTD4)
 	
@@ -89,7 +141,7 @@ function add_ingrediente2 (obj2)
 	// Creo el input
 	oTD = document.createElement ("TD")	
 	oInput = document.createElement ("INPUT")	
-	oInput.type = "text"	
+	oInput.type = "number"	
 	oInput.name = "cant2_" + num2
 	oInput.id = "cant2_" + num2
 	oInput.className = "input2"
@@ -120,12 +172,21 @@ function add_ingrediente2 (obj2)
 	
 	// Creo el otro input
 	oTD4 = document.createElement ("TD")	
-	oInput = document.createElement ("INPUT")
-	oInput.type = "text"
-	oInput.id = "prod2_" + num2
-	oInput.name = "prod2_" + num2
-	oInput.className = "input2"
+	oInput = document.createElement ("SELECT")
 	oInput.style.width = "370px"	
+
+	<?php
+
+	if(isset($ingredientes)){
+		foreach($ingredientes as $ingrediente): ?>
+		
+		oInput.innerHTML += "<option value='<?php echo $ingrediente["id_ingred"]; ?>'><?php echo $ingrediente["nombre"]; ?></option>"
+
+		<?php endforeach;
+	}
+
+	?>
+
 	oTD4.appendChild (oInput)	
 	oTR.appendChild (oTD4)
 	
@@ -151,14 +212,34 @@ function compReceta (obj)
 	valido = true
 	if (obj.titulo.value == "")
 	{
-		msg += "\n- Nombe de la receta."
+		msg += "\n- Nombre de la receta."
 		valido = false
 	}
-
 	
 	if (obj.duracion.value == "")
 	{
 		msg += "\n- Tiempo de preparación."
+		valido = false
+	}
+
+	var algunSeleccionado = false;
+
+	for(let i = 0; i < obj.opciones.options.length; i++){
+		let opt = obj.opciones.options[i]
+
+		if(opt.selected){
+			algunSeleccionado = true;
+			break;
+		}
+	}
+
+	if(!algunSeleccionado){
+		msg += "\n- Tipo de receta"
+		valido = false
+	}
+
+	if(obj.comensales.value == ""){
+		msg += "\n- Número de comensales."
 		valido = false
 	}
 	
@@ -168,7 +249,7 @@ function compReceta (obj)
 		valido = false
 	}
 	
-	if (obj.prod_1.value == "")
+	if (obj.prod_1.value == "" || obj.cant_1.value == "")
 	{
 		alert ("Debe introducir al menos un ingrediente (producto)")
 		return false
@@ -181,10 +262,17 @@ function compReceta (obj)
 			alert ("El tiempo de preparación debe ser un número.")
 			return false
 		}
+
+		if (isNaN (parseInt (obj.comensales.value,10)))
+		{
+			alert ("Los comensales debe ser un número.")
+			return false
+		}
 		else
 		{
 			return true
 		}
+		
 	}
 	else
 	{
@@ -233,33 +321,13 @@ function compReceta (obj)
 							  
 							  <td width="226"><select multiple name="multiple[]" id="opciones">
 								  
-								  <option value="1">Arroz</option>
-								  
-								  <option value="2">Pescado</option>
-								  
-								  <option value="3">Pasta</option>
-								  
-								  <option value="4">Carne</option>
-								  
-								  <option value="5">Verduras</option>
-								  
-								  <option value="6">Fritos</option>
-								  
-								  <option value="7">Bebidas</option>
-								  
-								  <option value="8">Primer plato</option>
-								  
-								  <option value="9">Segundo plato</option>
-                                  
-                                  <option value="10">Postre</option>
-                                  
-                                  <option value="11">Ensaladas</option>
-                                  
-                                  <option value="12">Entrantes</option>
-                                  
-                                  <option value="13">Potajes</option>
-                                  
-                                  <option value="14">Mariscos</option>
+							  		<?php  
+										if(isset($tiposReceta)){
+											foreach($tiposReceta as $tipoReceta) : ?>
+												<option value="<?php echo $tipoReceta["id_tipo_receta"] ?>"><?php echo $tipoReceta["tipos_receta"] ?></option>
+											<?php endforeach;
+										}
+									?>
 								  
 								</select></td>
 							 
@@ -270,21 +338,13 @@ function compReceta (obj)
 							  
 							  <td><select name="provincia">
 								  
-								  <option value="1">Huelva</option>
-								  
-								  <option value="2">Cádiz</option>
-								  
-								  <option value="3">Almería</option>
-								  
-								  <option value="4">Granada</option>
-								  
-								  <option value="5">Córdoba</option>
-
-								  <option value="6">Málaga</option>
-								  
-								  <option value="7">Jaén</option>
-								  
-								  <option value="8">Sevilla</option>
+							  		<?php  
+										if(isset($provincias)){
+											foreach($provincias as $provincia) : ?>
+												<option value="<?php echo $provincia["id_provincia"] ?>"><?php echo $provincia["nombre"] ?></option>
+											<?php endforeach;
+										}
+									?>
 								  
 								</select></td>
 							</tr>
@@ -353,14 +413,24 @@ function compReceta (obj)
 							  <td valign="bottom">Producto</td>
 							</tr>
 							<tr>
-							  <td height="25"><input type="text" name="cant_1" style="width:50px"></td>
+							  <td height="25"><input type="number" name="cant_1" style="width:50px"></td>
 							  <td>&nbsp;</td>
 							  <td><select name="medi_1">
 								  <option value="">unidad o pieza</option>
 								  <option value="gramo">gramo</option>
 								</select>                                              </td>
 							  <td><img src="imagenes/1px.gif" width="10" height="10"></td>
-							  <td><input type="text" name="prod_1" style="width:370px"></td>
+							  <td>
+							  		<select style="width: 370px;" name="prod_1">
+										<?php  
+											if(isset($ingredientes)){
+												foreach($ingredientes as $ingrediente) : ?>
+													<option value="<?php echo $ingrediente["id_ingred"] ?>"><?php echo $ingrediente["nombre"] ?></option>
+												<?php endforeach;
+											}
+										?>
+									</select>
+							  </td>
 							</tr>
 						  </tbody></table>
 						  
@@ -401,14 +471,24 @@ function compReceta (obj)
 							  <td valign="bottom">Producto</td>
 							</tr>
 							<tr>
-							  <td height="25"><input type="text" name="cant2_1" style="width:50px"></td>
+							  <td height="25"><input type="number" name="cant2_1" style="width:50px"></td>
 							  <td>&nbsp;</td>
 							  <td><select name="medi2_1">
 								  <option value="">unidad o pieza</option>
 								  <option value="gramo">gramo</option>
 								</select>                                              </td>
 							  <td><img src="imagenes/1px.gif" width="10" height="10"></td>
-							  <td><input type="text" name="prod2_1" style="width:370px"></td>
+							  <td>
+							  		<select style="width: 370px;" name="prod2_1">
+										<?php  
+											if(isset($ingredientes)){
+												foreach($ingredientes as $ingrediente) : ?>
+													<option value="<?php echo $ingrediente["id_ingred"] ?>"><?php echo $ingrediente["nombre"] ?></option>
+												<?php endforeach;
+											}
+										?>
+									</select>
+							  </td>
 							</tr>
 						  </tbody></table>
 						  
