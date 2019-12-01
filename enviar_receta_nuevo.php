@@ -357,10 +357,10 @@ function validation($recipe, $db){
         array_push($idIngredients, $ingredient["id_ingred"]);
     }
     
-    $idRecypeType = [];
+    $idRecipeType = [];
     
     foreach($recipeTypes as $recipeType){
-        array_push($idRecypeType, $recipeType["id_tipo_receta"]);
+        array_push($idRecipeType, $recipeType["id_tipo_receta"]);
     }
     
     
@@ -441,7 +441,7 @@ function validation($recipe, $db){
 
     $ok = true;
     foreach($recipe["multiple"] as $recipeType){
-        if(!in_array($recipeType, $idRecypeType)){
+        if(!in_array($recipeType, $idRecipeType)){
             $ok = false;
             break;
         }
