@@ -124,19 +124,27 @@ try {
 
                 for($i=1; $i <= intval($recipe["contador"]); $i++){
                     if(! empty($recipe["cant_" . $i])){
-                       $query = "INSERT INTO ingredientes_principales (id_ingred, id_receta, cantidad, aclaraciones) 
-                       VALUES (:idIngrediente, :idReceta, :cantidad, :aclaraciones)";
+                       $query = "INSERT INTO ingredientes_principales (id_ingred, id_receta, cantidad, medida, aclaraciones) 
+                       VALUES (:idIngrediente, :idReceta, :cantidad, :medida, :aclaraciones)";
 
                         $st = $db->prepare($query);
 
                         $st->bindParam(':idIngrediente', $ingredientId);
                         $st->bindParam(':idReceta', $idRecipe);
                         $st->bindParam(':cantidad', $amount);
+                        $st->bindParam(':medida', $mesaureType);
                         $st->bindParam(':aclaraciones', $comments);
 
                         $ingredientId = $recipe['prod_' . $i];
                         $idRecipe = $recipeId;
                         $amount = $recipe['cant_' . $i];
+
+                        if($recipe['medi_' . $i] == "gramo"){
+                            $mesaureType = "gramos";
+                        }else{
+                            $mesaureType = "unidad";
+                        }
+
                         $comments = null;
 
                         $st->execute();
@@ -146,19 +154,27 @@ try {
             
                 for($i=1; $i <= intval($recipe["contador"]); $i++){
                     if(! empty($recipe["cant2_" . $i])){
-                       $query = "INSERT INTO ingredientes_opcionales (id_ingred, id_receta, cantidad, aclaraciones) 
-                       VALUES (:idIngrediente, :idReceta, :cantidad, :aclaraciones)";
+                       $query = "INSERT INTO ingredientes_opcionales (id_ingred, id_receta, cantidad, medida, aclaraciones) 
+                       VALUES (:idIngrediente, :idReceta, :cantidad, :medida, :aclaraciones)";
 
                         $st = $db->prepare($query);
 
                         $st->bindParam(':idIngrediente', $ingredientId);
                         $st->bindParam(':idReceta', $idRecipe);
                         $st->bindParam(':cantidad', $amount);
+                        $st->bindParam(':medida', $mesaureType);
                         $st->bindParam(':aclaraciones', $comments);
 
                         $ingredientId = $recipe['prod2_' . $i];
                         $idRecipe = $recipeId;
                         $amount = $recipe['cant2_' . $i];
+
+                        if($recipe['medi2_' . $i] == "gramo"){
+                            $mesaureType = "gramos";
+                        }else{
+                            $mesaureType = "unidad";
+                        }
+
                         $comments = null;
 
                         $st->execute();

@@ -270,7 +270,7 @@ function showRecipes($recipes){
     
                 $properties = $st->fetchAll(PDO::FETCH_ASSOC);
                 
-                $query = "SELECT ingrediente.nombre, ingredientes_principales.cantidad FROM ingrediente JOIN ingredientes_principales on ingredientes_principales.id_ingred = ingrediente.id_ingred 
+                $query = "SELECT ingrediente.nombre, ingredientes_principales.cantidad, ingredientes_principales.medida FROM ingrediente JOIN ingredientes_principales on ingredientes_principales.id_ingred = ingrediente.id_ingred 
                 WHERE ingredientes_principales.id_receta = :id";
 
                 $st = $db->prepare($query);
@@ -281,7 +281,7 @@ function showRecipes($recipes){
 
                 $ingredients = $st->fetchAll(PDO::FETCH_ASSOC);
 
-                $query = "SELECT ingrediente.nombre, ingredientes_opcionales.cantidad FROM ingrediente JOIN ingredientes_opcionales on ingredientes_opcionales.id_ingred = ingrediente.id_ingred 
+                $query = "SELECT ingrediente.nombre, ingredientes_opcionales.cantidad, ingredientes_opcionales.medida FROM ingrediente JOIN ingredientes_opcionales on ingredientes_opcionales.id_ingred = ingrediente.id_ingred 
                 WHERE ingredientes_opcionales.id_receta = :id;";
 
                 $st = $db->prepare($query);
@@ -315,18 +315,28 @@ function showRecipes($recipes){
                     <div>
                         <p><b>Ingredientes</b></p>
                         <ul>
-                            <?php foreach($ingredients as $ingredient): ?>
-                                <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . " gramos o cantidad" ?></p></li>
-                            <?php endforeach; ?>
+                            <?php foreach($ingredients as $ingredient){
+                                if($ingredient["medida"] == "gramos") : ?>
+                                    <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . " gramos" ?></p></li>
+                                <?php else: ?>
+                                    <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . " unidad/es" ?></p></li>
+                                <?php endif;                                
+                            } 
+                            ?>
                         </ul>
 
                         <?php if(count($optionalIngredients) > 0) : ?>
 
                             <p><b>Ingredientes opcionales</b></p>
                             <ul>
-                                <?php foreach($optionalIngredients as $ingredient): ?>
-                                    <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . "g" ?></p></li>
-                                <?php endforeach; ?>
+                                <?php foreach($optionalIngredients as $ingredient){
+                                    if($ingredient["medida"] == "gramos") : ?>
+                                        <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . " gramos" ?></p></li>
+                                    <?php else: ?>
+                                        <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . " unidad/es" ?></p></li>
+                                    <?php endif;                                
+                                }
+                                ?>
                             </ul>
 
                         <?php endif; ?>
