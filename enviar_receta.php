@@ -4,12 +4,12 @@ include_once("cabecera.php");
 include_once("menu.php");
 include_once("col_izq.php"); 
 
-
 try{
 	$db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
 	
 	$db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 
+	//Hago una consulta para obtener todos los ingredientes para usarla más adelante
 	$query = "SELECT nombre, id_ingred FROM ingrediente";
 
 	$st = $db->prepare($query);
@@ -18,6 +18,7 @@ try{
 
 	$ingredientes = $st->fetchAll(PDO::FETCH_ASSOC);
 
+	//Hago una consulta para obtener todos los tipos de recetas para usarla más adelante
 	$query = "SELECT tipos_receta, id_tipo_receta FROM tipo_receta";
 
 	$st = $db->prepare($query);
@@ -26,6 +27,7 @@ try{
 
 	$tiposReceta = $st->fetchAll(PDO::FETCH_ASSOC);
 
+	//Hago una consulta para obtener todas las provincias para usarla más adelante
 	$query = "SELECT nombre, id_provincia FROM provincia";
 
 	$st = $db->prepare($query);
@@ -88,7 +90,7 @@ function add_ingrediente (obj)
 	oTD3 = document.createElement ("TD")
 	oTR.appendChild (oTD3)
 	
-	// Creo el otro input
+	// Creo el select para poder seleccionar un ingrediente
 	oTD4 = document.createElement ("TD")	
 	oInput = document.createElement ("SELECT")
 	oInput.id = "prod_" + num
@@ -97,6 +99,7 @@ function add_ingrediente (obj)
 
 	<?php
 
+	//Recorro los ingredientes obtenidos de la consulta para generar las opciones del select
 	if(isset($ingredientes)){
 		foreach($ingredientes as $ingrediente): ?>
 		
@@ -170,13 +173,14 @@ function add_ingrediente2 (obj2)
 	oTD3 = document.createElement ("TD")
 	oTR.appendChild (oTD3)
 	
-	// Creo el otro input
+	// Creo el select para poder seleccionar un ingrediente
 	oTD4 = document.createElement ("TD")	
 	oInput = document.createElement ("SELECT")
 	oInput.style.width = "370px"	
 
 	<?php
 
+	//Recorro los ingredientes obtenidos de la consulta para generar las opciones del select
 	if(isset($ingredientes)){
 		foreach($ingredientes as $ingrediente): ?>
 		
@@ -206,6 +210,7 @@ function add_ingrediente2 (obj2)
 		newSel.options[0].selected = true
 	}			
 }
+//Función para validar en el front
 function compReceta (obj)
 {
 	msg = "Debe rellenar los campos:"
@@ -224,6 +229,7 @@ function compReceta (obj)
 
 	var algunSeleccionado = false;
 
+	//Compruebo que haya algún tipo de receta seleccionado
 	for(let i = 0; i < obj.opciones.options.length; i++){
 		let opt = obj.opciones.options[i]
 
@@ -248,6 +254,8 @@ function compReceta (obj)
 		msg += "\n- Modo de preparación."
 		valido = false
 	}
+
+	//Compruebo que los ingredientes seleccionados tengan alguna cantidad
 	
 	if (obj.prod_1.value == "" || obj.cant_1.value == "")
 	{
@@ -262,6 +270,8 @@ function compReceta (obj)
 			alert ("El tiempo de preparación debe ser un número.")
 			return false
 		}
+
+		//Compruebo que los comensales deba ser un número
 
 		if (isNaN (parseInt (obj.comensales.value,10)))
 		{
@@ -321,7 +331,8 @@ function compReceta (obj)
 							  
 							  <td width="226"><select multiple name="multiple[]" id="opciones">
 								  
-							  		<?php  
+									<?php  
+									  	//Genero las opciones del select con los tipos de receta obtenidos en la consulta
 										if(isset($tiposReceta)){
 											foreach($tiposReceta as $tipoReceta) : ?>
 												<option value="<?php echo $tipoReceta["id_tipo_receta"] ?>"><?php echo $tipoReceta["tipos_receta"] ?></option>
@@ -338,7 +349,8 @@ function compReceta (obj)
 							  
 							  <td><select name="provincia">
 								  
-							  		<?php  
+									<?php  
+									  //Genero las opciones del select con las provincias obtenidas anteriormente
 										if(isset($provincias)){
 											foreach($provincias as $provincia) : ?>
 												<option value="<?php echo $provincia["id_provincia"] ?>"><?php echo $provincia["nombre"] ?></option>
@@ -423,6 +435,7 @@ function compReceta (obj)
 							  <td>
 							  		<select style="width: 370px;" name="prod_1">
 										<?php  
+											//Genero las opciones del select con los ingredientes obtenidos anteriormente
 											if(isset($ingredientes)){
 												foreach($ingredientes as $ingrediente) : ?>
 													<option value="<?php echo $ingrediente["id_ingred"] ?>"><?php echo $ingrediente["nombre"] ?></option>
@@ -481,6 +494,7 @@ function compReceta (obj)
 							  <td>
 							  		<select style="width: 370px;" name="prod2_1">
 										<?php  
+											//Genero las opciones del select con los ingredientes obtenidos anteriormente
 											if(isset($ingredientes)){
 												foreach($ingredientes as $ingrediente) : ?>
 													<option value="<?php echo $ingrediente["id_ingred"] ?>"><?php echo $ingrediente["nombre"] ?></option>

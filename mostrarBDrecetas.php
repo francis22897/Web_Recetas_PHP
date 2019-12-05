@@ -8,6 +8,8 @@ echo "<div id='estiloRecetas'>";
 
 ?>
 
+<!-- Creo dos formularios, uno para buscar recetas por nombre y otro para buscar por ingrediente -->
+
 <form action="mostrarBDrecetas.php" method="POST">
 
     <div class="fields">
@@ -28,6 +30,7 @@ echo "<div id='estiloRecetas'>";
 
 <?php
 
+//En función del parámetro de la consulta GET, llamo a las funciones para obtener las recetas
 if(count($_GET) != 0){
     
     if(isset($_GET["tipo"])){
@@ -52,10 +55,15 @@ if(count($_GET) != 0){
         }
     }
 
+    //En caso de no haber consulta GET, se comprueba si hay consulta POST
+    //En caso afirmativo, quiere decir que se ha hecho una búsqueda por el formulario
+
 }else{
+    //Si el POST proviene del formulario de recetas
     if(isset($_POST["recipeSearch"])){
         $searchText = $_POST["recipeSearch"];
 
+        //Consulta para obtener las recetas cuyo titulo coincida con el texto buscado
         if(!empty($searchText)){
             try{
                 $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
@@ -83,10 +91,10 @@ if(count($_GET) != 0){
             }
         }
     }
-
+    //Si el POST proviene del formulario de ingredientes
     if(isset($_POST["ingredientSearch"])){
         $searchText = $_POST["ingredientSearch"];
-
+    //Consulta para obtener las recetas con algun ingrediente que coincida con el texto buscado
         if(!empty($searchText)){
             try{
                 $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
@@ -117,11 +125,14 @@ if(count($_GET) != 0){
     }
 }
 
+//Función para obtener las recetas por provincia
 function getByProvince() {
 
+    //Si ha recibido el POST 
     if(isset($_POST["selectprov"])){
         $province = $_POST["selectprov"];
 
+        //Consulta para obtener las recetas en función de la provincia recibida
         try{
             $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
             
@@ -137,6 +148,7 @@ function getByProvince() {
 
             $recipes = $st->fetchAll(PDO::FETCH_ASSOC);
             
+            //Muestro las recetas
             showRecipes($recipes);
     
         } catch (PDOException $e) {
@@ -150,11 +162,15 @@ function getByProvince() {
 
 }
 
+//Función para buscar recetas por provincia y su especialidad
 function getBySpecial() {
+
+    //Si ha recibido el POST
     if(isset($_POST["selectprov2"]) && isset($_POST["selectesp"])){
         $province = $_POST["selectprov2"];
         $speciality = $_POST["selectesp"];
 
+        //Consulta para obtener recetas en función de la provincia y su especialidad
         try{
             $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
             
@@ -172,6 +188,7 @@ function getBySpecial() {
 
             $recipes = $st->fetchAll(PDO::FETCH_ASSOC);
             
+            //Muestro las recetas
             showRecipes($recipes);
     
         } catch (PDOException $e) {
@@ -185,8 +202,11 @@ function getBySpecial() {
     }
 }
 
+//Función que busca recetas en función de si es vegetariana, vegana, light, o celiaca
+//Entrada: el tipo de receta por la que debe buscar
 function getByStyle($style) {
 
+    //Consulta para buscar recetas en función si el tipo de receta recibido está activo
     try{
         $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
         
@@ -200,6 +220,7 @@ function getByStyle($style) {
 
         $recipes = $st->fetchAll(PDO::FETCH_ASSOC);
         
+        //Mostrar las recetas
         showRecipes($recipes);
 
     } catch (PDOException $e) {
@@ -211,10 +232,12 @@ function getByStyle($style) {
     }
 }
 
-
+//Función que busca recetas por su identificador
 function getByRecipe(){
+    //Comprueba que haya recibido el POST
     if(isset($_POST["recipe"])){
         $idRecipe = $_POST["recipe"];
+        //Consulta para obtener recetas por su id
         try{
             $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
             
@@ -230,6 +253,7 @@ function getByRecipe(){
 
             $recipes = $st->fetchAll(PDO::FETCH_ASSOC);
             
+            //Muestro la receta
             showRecipes($recipes);
     
         } catch (PDOException $e) {
@@ -242,19 +266,21 @@ function getByRecipe(){
     }
 }
 
+//Función para mostrar las recetas
+//Entrada: las recetas que debe mostrar
 function showRecipes($recipes){
-    
-
+    //Si al array está vacío, no se han encontrado recetas
     if(count($recipes) == 0){
         echo "<h2>No se han encontrado recetas</h2>";
     }else{
-
+        //En caso de haber alguna receta, las recorro con un bucle
         foreach($recipes as $recipe){
             try{
                 $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
                 
                 $db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
         
+                //Consulta para obtener la suma de las propiedades de todos los ingredientes de la receta
                 $query = "SELECT sum(calorias_100g) as calorias, sum(proteinas_100g) as proteinas, sum(hidratos_100g) as hidratos, 
                 sum(grasas_saturadas_100g) as grasas_saturadas, sum(grasas_totales_100g) as grasas_totales, 
                 sum(grasas_monoinsaturadas_100g) as grasas_monoinsaturadas, sum(grasas_poliinsaturadas_100g) as grasas_poliinsaturadas, 
@@ -270,6 +296,7 @@ function showRecipes($recipes){
     
                 $properties = $st->fetchAll(PDO::FETCH_ASSOC);
                 
+                //Consulta para obtener el nombre de los ingredientes principales, la cantidad necesaria y la medida (gramos o unidades)
                 $query = "SELECT ingrediente.nombre, ingredientes_principales.cantidad, ingredientes_principales.medida FROM ingrediente JOIN ingredientes_principales on ingredientes_principales.id_ingred = ingrediente.id_ingred 
                 WHERE ingredientes_principales.id_receta = :id";
 
@@ -281,6 +308,7 @@ function showRecipes($recipes){
 
                 $ingredients = $st->fetchAll(PDO::FETCH_ASSOC);
 
+                //Consulta para obtener el nombre de los ingredientes opcionales, la cantidad necesaria y la medida (gramos o unidades)
                 $query = "SELECT ingrediente.nombre, ingredientes_opcionales.cantidad, ingredientes_opcionales.medida FROM ingrediente JOIN ingredientes_opcionales on ingredientes_opcionales.id_ingred = ingrediente.id_ingred 
                 WHERE ingredientes_opcionales.id_receta = :id;";
 
@@ -292,6 +320,7 @@ function showRecipes($recipes){
 
                 $optionalIngredients = $st->fetchAll();
 
+                //Consulta para obtener las imágenes de la receta
                 $query = "SELECT * FROM imagen WHERE imagen.receta_id_receta = :id";
 
                 $st = $db->prepare($query);
@@ -303,10 +332,12 @@ function showRecipes($recipes){
                 $images = $st->fetchAll(PDO::FETCH_ASSOC);
 
                ?>
-
+                
+                <!-- Muestro la información de la receta -->
                 <h2><?php echo $recipe['titulo'] . ' para ' . $recipe['comensales'] . ' personas'; ?></h2>
                 <p>Duración <?php echo $recipe["duracion"] . ' minutos' ?></p>
                 <div>
+                <!-- Recorro las imágenes -->
                 <?php foreach($images as $image): ?>                  
                     <img <?php echo $image["ruta"]; ?> alt="<?php echo $image["nombre_imagen"]; ?>" height="250" width="250">
                 <?php endforeach; ?>
@@ -315,6 +346,7 @@ function showRecipes($recipes){
                     <div>
                         <p><b>Ingredientes</b></p>
                         <ul>
+                            <!-- Recorro los ingredientes principales -->
                             <?php foreach($ingredients as $ingredient){
                                 if($ingredient["medida"] == "gramos") : ?>
                                     <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . " gramos" ?></p></li>
@@ -329,6 +361,7 @@ function showRecipes($recipes){
 
                             <p><b>Ingredientes opcionales</b></p>
                             <ul>
+                                <!-- En caso de haber ingredientes opcionales, los recorro -->
                                 <?php foreach($optionalIngredients as $ingredient){
                                     if($ingredient["medida"] == "gramos") : ?>
                                         <li><p><?php echo $ingredient["nombre"] . " " . $ingredient["cantidad"] . " gramos" ?></p></li>
@@ -342,6 +375,7 @@ function showRecipes($recipes){
                         <?php endif; ?>
                     </div>
                     <div>
+                        <!-- Creo una tabla para mostrar las propiedades de los ingredientes principales -->
                         <table border="1">
                             <thead>
                                 <th>Propiedades</th>
@@ -363,7 +397,7 @@ function showRecipes($recipes){
                     </div>
                 </div>
                 <div>
-                    
+                    <!-- Creo un array con los utensilios necesarios para la receta -->
                 <?php 
                 
                     $utensils = [];
@@ -379,6 +413,7 @@ function showRecipes($recipes){
 
                 ?>
 
+                <!-- En caso de haber algún utensilio, los muestro con un implode -->
                 <?php if(count($utensils) > 0) : ?>
                     <div>
                         <p><b>Necesitaremos</b></p>
@@ -392,6 +427,7 @@ function showRecipes($recipes){
                     <p><?php echo $recipe["preparacion"]; ?></p>
                 </div>
 
+                <!-- Creo un array con el tipo de receta que es -->
                 <?php 
                 
                     $type = [];
@@ -406,6 +442,7 @@ function showRecipes($recipes){
                         array_push($type, "Vegana");
                 ?>
 
+                <!-- En caso de ser de algún tipo, los muestro con un implode -->
                 <?php if(count($type) > 0) : ?>
                     <div>
                         <p><b>Características</b></p>

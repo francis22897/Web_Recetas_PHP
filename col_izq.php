@@ -48,6 +48,7 @@
 </form><br/>
 <h3> ULTIMAS 5 RECETAS!:</h3>
 <?php
+//Consulta select para obtener las últimas 5 recetas subidas por usuarios
 	try{
         $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
 		
@@ -71,6 +72,8 @@
 	
 	if(isset($recetas)) :
 ?>
+	<!-- Creo un formulario por cada receta -->
+	<!-- El formulario contiene un campo oculto que contiene el id de la receta y un hyperlink para redirigir al detalle de la receta -->
 		<ul>
 			<?php $counter = 1 ?>
 			<?php foreach($recetas as $receta) : ?>

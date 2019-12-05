@@ -7,6 +7,7 @@ include_once("col_izq.php");
 echo "<div id='estiloglosario'>";
 
 try{
+    //Hago una consulta para obtener el glosario
     $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
     
     $db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
@@ -19,6 +20,7 @@ try{
 
     $glosary = $st->fetchAll(PDO::FETCH_ASSOC);
     
+    //Si la consulta ha obtenido algún resultado recorro el resultado y muestro el glosario
     if(count($glosary) > 0){
         foreach($glosary as $expression): ?>
 

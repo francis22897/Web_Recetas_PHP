@@ -9,15 +9,19 @@ try {
     $db = new PDO('mysql:host=localhost;dbname=bd_recetas', 'root', 'root');
     $db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 
+    //Compruebo que se reciba el POST
     if(isset($_POST)){
         $recipe = $_POST;
 
+        //Compruebo que las validaciones sean correctas
         if(validation($recipe, $db)){
 
             try{
 
+                //Comienzo una transacción
                 $db->beginTransaction();
 
+                //Consulta para insertar la receta
                 $query = "INSERT INTO receta (titulo, duracion, dificultad, preparacion, horno, batidora, microondas, thermomix, 
                 celiacos, light, vegetariana, vegana, validada, fecha, comensales, observaciones, numusuario_id_usuario) VALUES (:titulo, 
                 :duracion, :dificultad, :preparacion, :horno, :batidora, :microondas, :thermomix, :celiacos, :light, :vegetariana, :vegana, 
@@ -109,7 +113,9 @@ try {
                 $st->execute();
                 $recipeId = $db->lastInsertId();
 
+                //Recorro los tipos de receta seleccionados
                 foreach($recipe["multiple"] as $type){
+                    //Consulta para insertar el tipo de receta
                     $query = "INSERT INTO receta_tipo (id_receta, id_tipo_receta) VALUES (:idReceta, :idTipo)";
                     $st = $db->prepare($query);
 
@@ -122,8 +128,11 @@ try {
                     $st->execute();
                 }
 
+                //Recorro los ingredientes principales
                 for($i=1; $i <= intval($recipe["contador"]); $i++){
+                    //Compruebo que deba tener cantidad
                     if(! empty($recipe["cant_" . $i])){
+                        //Consulta para insertar los ingredientes principales
                        $query = "INSERT INTO ingredientes_principales (id_ingred, id_receta, cantidad, medida, aclaraciones) 
                        VALUES (:idIngrediente, :idReceta, :cantidad, :medida, :aclaraciones)";
 
@@ -152,8 +161,11 @@ try {
                     }
                 }
             
+                //Recorro los ingredientes opcionales
                 for($i=1; $i <= intval($recipe["contador"]); $i++){
+                    //Compruebo que tenga cantidad
                     if(! empty($recipe["cant2_" . $i])){
+                        //Consulta para insertar los ingredientes opcionales
                        $query = "INSERT INTO ingredientes_opcionales (id_ingred, id_receta, cantidad, medida, aclaraciones) 
                        VALUES (:idIngrediente, :idReceta, :cantidad, :medida, :aclaraciones)";
 
@@ -182,6 +194,7 @@ try {
                     }
                 }
 
+                //Consulta para insertar las recetas
                 $query = "INSERT INTO receta_provincia (receta_id_receta, provincia_id_provincia) VALUES (:idReceta, :idProvincia)";
                 $st = $db->prepare($query);
 
@@ -193,15 +206,19 @@ try {
 
                 $st->execute();
 
+                //Compruebo que se haya subido una foto
                 if(isset($_FILES["foto"])){
                     $image = $_FILES["foto"];
+                    //Compruebo que sea una imagen
                     if($image["type"] == "image/jpeg" || $image["type"] == "image/png" || $image["type"] == "image/jpg"){
                         $rute = "fotos/" . $image["name"];
+                        //Muevo el archivo a la carpeta fotos
                         move_uploaded_file($image["tmp_name"], $rute);
                         $size = getimagesize($rute);
                         $width = $size[0];
                         $height = $size[1];
 
+                        //Consulta para insertar la imagen
                         $query = "INSERT INTO imagen (nombre_imagen, ruta, ancho, alto, descripcion, ingrediente_id_ingred, receta_id_receta, restaurante_id_rest)
                          VALUES (:nombreImagen, :ruta, :ancho, :alto, :descripcion, :idIngrediente, :idReceta, :idRestaurante)";
                         
@@ -229,6 +246,7 @@ try {
                     }
                 }
 
+                //Commiteo la transacción
                 $db->commit();
 
                 echo "<p>Tu receta se ha añadido con éxito</p>";
@@ -236,6 +254,7 @@ try {
             }catch(Exception $e){
                 echo "<h2>Error</h2>";
                 echo "<p>Error al intentar subir la receta: " . $e->getMessage() . "</p>";
+                //En caso de error rechazo la transacción
                 $db->rollback();
                 die();
             }
@@ -253,8 +272,13 @@ include_once("pie.php"); ?>
 
 <?php
 
+//Función para validar los datos 
+//Entrada: los datos de la receta que se quiere añadir a la base de datos, y la llamada pdo a la base de datos
+//Salida: booleano en función si las validaciones son correctas o no
+
 function validation($recipe, $db){
     
+    //Creo el array para el tipo de validaciones
     $validator = [
         'required' => [
             'callback' => function ($item , $message) {
@@ -303,6 +327,7 @@ function validation($recipe, $db){
         ]
     ];
 
+    //Creo el array para los campos que deben ser validados
     $assignments = [
         'titulo'                => ['required' => "El nombre de la receta no puede estar vacío", 'alphanum' => "El nombre de la receta debe estar compuesto de números y letras"],
         'multiple'              => ['numbers' => "El valor del tipo de receta debe ser numérico"],
@@ -317,6 +342,7 @@ function validation($recipe, $db){
 
     try{
             
+        //Consulta para obtener el id de todos los ingredientes para usarlo más adelante
         $query = "SELECT id_ingred FROM ingrediente";
     
         $st = $db->prepare($query);
@@ -325,6 +351,7 @@ function validation($recipe, $db){
     
         $ingredients = $st->fetchAll(PDO::FETCH_ASSOC);
     
+        //Consulta para obtener el id de todos los tipos de recetas para usarlo más adelante
         $query = "SELECT id_tipo_receta FROM tipo_receta";
     
         $st = $db->prepare($query);
@@ -333,6 +360,7 @@ function validation($recipe, $db){
     
         $recipeTypes = $st->fetchAll(PDO::FETCH_ASSOC);
     
+        //Consulta para obtener todas las provincias para usarlo más adelante
         $query = "SELECT * FROM provincia";
     
         $st = $db->prepare($query);
@@ -351,26 +379,31 @@ function validation($recipe, $db){
         die();
     }
     
+    //Creo un array con los ingredientes obtenidos en la consulta
     $idIngredients = [];
     
     foreach($ingredients as $ingredient){
         array_push($idIngredients, $ingredient["id_ingred"]);
     }
     
+    //Creo un array con los tipos de recetas obtenidos en la consulta
     $idRecipeType = [];
     
     foreach($recipeTypes as $recipeType){
         array_push($idRecipeType, $recipeType["id_tipo_receta"]);
     }
     
-    
+    //Creo un array con las provincias obtenidas en la consulta
     $idProvinces = [];
     
     foreach($provinces as $province){
         array_push($idProvinces, $province["id_provincia"]);
     }
 
+    //Creo un array con los id de los ingredientes seleccionados
     $ingredientsSelected = [];
+
+    //Creo un array con los ingredientes principales que se quieren añadir para validarlos
 
     for($i=1; $i <= intval($recipe["contador"]); $i++){
         if(! empty($recipe["cant_" . $i])){
@@ -381,12 +414,17 @@ function validation($recipe, $db){
             ];
         }
 
+        //Añado el id del ingrediente seleccionado
         array_push($ingredientsSelected, $recipe['prod_'. $i]);
-
+        
+        //Mergeo el array creado con el de los campos para validar
         $assignments = array_merge($assignments, $array);
     }
 
+    //Creo un array con los id de los ingredientes seleccionados
     $optionalIngredientsSelected = [];
+
+    //Creo un array con los ingredientes opcionales que se quieren añadir para validarlos
 
     for($i=1; $i <= intval($recipe["contador2"]); $i++){
         if(! empty($recipe["cant2_" . $i])){
@@ -396,12 +434,15 @@ function validation($recipe, $db){
                 'prod2_' . $i => ["required" => "Debes seleccionar un ingrediente", "num" => "El valor del ingrediente elegido debe ser un número"]
             ];
 
+            //Añado el id del ingrediente seleccionado
             array_push($optionalIngredientsSelected, $recipe['prod2_'. $i]);
 
+            //Mergeo el array creado con el de los campos para validar
             $assignments = array_merge($assignments, $array);
             }
         }
 
+    //Compruebo que los campos para validar concuerden con la validación asignada
     $error_message = "";
     foreach ($recipe as $field => $item) {
         if(in_array($field, array_keys($assignments))){
@@ -414,6 +455,7 @@ function validation($recipe, $db){
         }
     }
 
+    //Compruebo que los ingredientes principales seleccionados tengan un id válido
     $ok = true;
     foreach($ingredientsSelected as $item){
         if(!in_array($item, $idIngredients)){
@@ -426,7 +468,7 @@ function validation($recipe, $db){
         $error_message = $error_message . "<p>Los ingredientes principales seleccionados no son correctos</p>";
     }
 
-            
+    //Compruebo que los ingredientes opcinales seleccionados tengan un id válido
     $ok = true;
     foreach($optionalIngredientsSelected as $item){
         if(!in_array($item, $idIngredients)){
@@ -439,6 +481,7 @@ function validation($recipe, $db){
         $error_message = $error_message . "<p>Los ingredientes opcionales seleccionados no son correctos</p>";
     }
 
+    //Compruebo que los tipos de recetas seleccionados tengan un id válido
     $ok = true;
     foreach($recipe["multiple"] as $recipeType){
         if(!in_array($recipeType, $idRecipeType)){
@@ -451,10 +494,12 @@ function validation($recipe, $db){
         $error_message = $error_message . "<p>Los tipos de recetas seleccionados no son correctos</p>";
     }
 
+    //Compruebo que la provincia seleccionada tenga un id válido
     if(!in_array($recipe["provincia"], $idProvinces)){
         $error_message = $error_message . "<p>La provincia seleccionada no es correcta</p>";
     }
 
+    //En caso de haber algún error muestro el mensaje de error
     if($error_message != ""){
         echo "<h2>Error</h2>";
         echo $error_message;
