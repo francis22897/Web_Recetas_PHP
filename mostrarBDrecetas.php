@@ -45,8 +45,11 @@ if(count($_GET) != 0){
                 break;
             case "vegetariana":
             case "vegana":
-            case "celiaco":
             case "light":
+                getByStyle($type);
+                break;
+            case "celiaco":
+                $type = "celiacos";
                 getByStyle($type);
                 break;
             case "receta":
